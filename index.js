@@ -76,4 +76,6 @@ io.on("connection", (socket) => {
   });
 });
 
-io.listen(5005);
+const port = process.env.PORT || 5000;
+
+io.listen(port);
