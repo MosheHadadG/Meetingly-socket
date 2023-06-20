@@ -3,7 +3,7 @@ import { Server } from "socket.io";
 const io = new Server({
   /* options */
   cors: {
-    origin: "http://localhost:3000",
+    origin: "https://meetingly-frontend.onrender.com/",
   },
 });
 
