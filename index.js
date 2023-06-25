@@ -18,8 +18,12 @@ const removeUser = (socketId) => {
   onlineUsers = onlineUsers.filter((user) => user.socketId !== socketId);
 };
 
-const getUser = (userId) => {
+const getUserById = (userId) => {
   return onlineUsers.find((user) => user.userId === userId);
+};
+
+const getUserByUsername = (username) => {
+  return onlineUsers.find((user) => user.username === username);
 };
 
 io.on("connection", (socket) => {
@@ -27,8 +31,25 @@ io.on("connection", (socket) => {
 
   socket.on("newSocketUser", ({ userId, username }) => {
     addNewUser({ userId, username, socketId: socket.id });
+
+    io.emit("getOnlineUsers", onlineUsers);
     // console.log({ onlineUsers });
   });
+
+  socket.on("sendMessage", ({ messageData }) => {
+    const { receiverUsername } = messageData;
+    console.log(messageData);
+
+    const receiverSocket = getUserByUsername(receiverUsername);
+    if (!receiverSocket) return;
+
+    delete messageData.receiverUsername;
+    io.to(receiverSocket.socketId).emit("getMessage", {
+      messageSent: messageData.messageSent,
+    });
+  });
+
+  // Notifications and Event Requests
 
   socket.on("sendNotification", ({ notification, type }) => {
     if (
@@ -40,7 +61,7 @@ io.on("connection", (socket) => {
           const { receiver } = notificationToRemovedParticipant;
           console.log(notificationToRemovedParticipant);
           // console.log(receiver);
-          const receiverSocket = getUser(receiver);
+          const receiverSocket = getUserById(receiver);
           if (!receiverSocket) return;
           io.to(receiverSocket.socketId).emit("getNotification", {
             notification: notificationToRemovedParticipant,
@@ -51,7 +72,7 @@ io.on("connection", (socket) => {
     } else {
       const { receiver } = notification;
 
-      const receiverSocket = getUser(receiver);
+      const receiverSocket = getUserById(receiver);
       // console.log({ receiverSocket });
       if (!receiverSocket) return;
       io.to(receiverSocket.socketId).emit("getNotification", {
@@ -63,7 +84,7 @@ io.on("connection", (socket) => {
 
   socket.on("sendRequestNotification", ({ requestNotification }) => {
     const { receiver } = requestNotification;
-    const receiverSocket = getUser(receiver);
+    const receiverSocket = getUserById(receiver);
     if (!receiverSocket) return;
     io.to(receiverSocket.socketId).emit("getRequestNotification", {
       requestNotification,
@@ -72,6 +93,7 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     removeUser(socket.id);
+    io.emit("getOnlineUsers", onlineUsers);
     console.log("someone has left", { onlineUsers });
   });
 });
