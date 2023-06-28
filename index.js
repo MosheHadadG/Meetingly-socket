@@ -37,16 +37,19 @@ io.on("connection", (socket) => {
   });
 
   socket.on("sendMessage", ({ messageData }) => {
-    const { receiverUsername } = messageData;
-    console.log(messageData);
+    const { receiversUsername } = messageData;
 
-    const receiverSocket = getUserByUsername(receiverUsername);
-    if (!receiverSocket) return;
+    // group
+    if (Array.isArray(receiversUsername)) {
+      receiversUsername.map((receiver) => {
+        const receiverSocket = getUserByUsername(receiver);
+        if (!receiverSocket) return;
 
-    delete messageData.receiverUsername;
-    io.to(receiverSocket.socketId).emit("getMessage", {
-      messageSent: messageData.messageSent,
-    });
+        io.to(receiverSocket.socketId).emit("getMessage", {
+          messageSent: messageData.messageSent,
+        });
+      });
+    }
   });
 
   // Notifications and Event Requests
