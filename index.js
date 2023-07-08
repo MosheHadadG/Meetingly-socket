@@ -103,4 +103,4 @@ io.on("connection", (socket) => {
 
 const port = process.env.PORT || 5005;
 
-io.listen(port);
+io.listen(port, console.log(`Socket Server running on port ${port}`));
