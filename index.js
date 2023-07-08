@@ -103,8 +103,4 @@ io.on("connection", (socket) => {
 
 const port = process.env.PORT || 5005;
 
-io.get("/", (req, res) => {
-  res.send("Welcome our to Meetingly Socket...");
-});
-
 io.listen(port, console.log(`Socket Server running on port ${port}`));
